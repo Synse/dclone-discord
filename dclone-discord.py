@@ -131,6 +131,11 @@ class DiscordClient(discord.Client):
 
                 # update our cache (last status change)
                 self.dclone.progress_cache[(region, ladder, hc)] = progress
+            elif progress < progress_was and progress == 1 and updated_ago >= DCLONE_DELAY:
+                # we need to reset to 1 after a spawn; this will cause duplicate messages if someone
+                # incorrectly sets progress to 1 and it stays for more than DCLONE_DELAY seconds
+                print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} resetting to 1 after assumed spawn')
+                self.dclone.progress_cache[(region, ladder, hc)] = progress
             elif progress != progress_was:
                 # report suspicious progress changes, these are not sent to discord
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 (was {progress_was}/6) -- {updated_ago} seconds ago')

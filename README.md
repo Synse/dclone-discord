@@ -1,8 +1,10 @@
 # dclone-discord
 
-![](https://img.shields.io/badge/version-0.2-blue)
+![](https://img.shields.io/badge/version-0.3-blue)
 
 A Discord bot for reporting [DClone Tracker](https://diablo2.io/dclonetracker.php) progress changes for Diablo 2: Resurrected. By default it will report any progress changes at or above level 2 for All Regions, Non-Ladder, Softcore.
+
+You can also get the current progress for tracked regions by typing `.dclone` or `!dclone` in chat.
 
 ## Usage
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Discord Bot for tracking DClone - https://github.com/Synse/discord-dclone
+from datetime import timedelta
 from discord.ext import tasks
 from os import environ
 from requests import get
@@ -29,7 +30,7 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.2'
+__version__ = '0.3'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
 LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Hardcore and Softcore'}
 HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Ladder and Non-Ladder'}
@@ -93,6 +94,30 @@ class DCloneTracker():
             print(f'DClone Tracker API Error: {e}')
             return None
 
+    def current_progress_message(self):
+        """
+        Returns a formatted message for the current dclone status by mode (region, ladder, hc).
+        """
+        # Get the current dclone status
+        # TODO: Return from current_progress instead of querying the API every time
+        status = self.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        if not status:
+            return
+
+        # Build a message for the current progress of each mode
+        message = 'Current DClone Progress:\n'
+        for data in status:
+            region = data.get('region')
+            ladder = data.get('ladder')
+            hc = data.get('hc')
+            progress = int(data.get('progress'))
+            ago = timedelta(seconds=int(time() - int(data.get('timestamped'))))
+
+            message += f' - **{REGION[region]} {LADDER[ladder]} {HC[hc]}** is `{progress}/6` ({ago} ago)\n'
+        message += '> Data provided by diablo2.io'
+
+        return message
+
     def should_update(self, mode):
         """
         For a given game mode, returns True/False if we should post an alert to Discord.
@@ -130,8 +155,16 @@ class DiscordClient(discord.Client):
         print(f'Bot logged into Discord as {self.user}')
         self.check_dclone_status.start()
 
-    # async def on_message(self, message):
-    #     print('>> Message from {0.author}: {0.content}'.format(message))
+    async def on_message(self, message):
+        """
+        This is called any time the bot receives a message. It implements the dclone chatop.
+        """
+        if message.content.startswith('.dclone') or message.content.startswith('!dclone'):
+            current_status = self.dclone.current_progress_message()
+
+            if current_status:
+                channel = self.get_channel(message.channel.id)
+                await channel.send(current_status)
 
     @tasks.loop(seconds=60)
     async def check_dclone_status(self):

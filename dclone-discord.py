@@ -203,15 +203,17 @@ class DiscordClient(discord.Client):
 
                 # update current status
                 self.dclone.current_progress[(region, ladder, hc)] = progress
-            elif progress < progress_was and progress == 1 and self.dclone.should_update((region, ladder, hc)):
+            elif progress < progress_was and self.dclone.should_update((region, ladder, hc)):
                 # progress increases are interesting, but we also need to reset to 1 after dclone spawns
-                print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} resetting to 1 after assumed spawn')
+                # and to roll it back if the new confirmed progress is less than the current progress
+                print(f'[RollBack] {REGION[region]} {LADDER[ladder]} {HC[hc]} rolling back to {progress}')
 
-                # post to discord
-                message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone probably spawned less than {max(1,DCLONE_REPORTS)} minutes ago'
-                message += '\n> Data courtesy of diablo2.io'
-                channel = self.get_channel(DISCORD_CHANNEL_ID)
-                await channel.send(message)
+                # if we believe dclone spawned, post to discord
+                if progress == 1:
+                    message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone probably spawned less than {max(1,DCLONE_REPORTS)}m ago'
+                    message += '\n> Data courtesy of diablo2.io'
+                    channel = self.get_channel(DISCORD_CHANNEL_ID)
+                    await channel.send(message)
 
                 # update current status
                 self.dclone.current_progress[(region, ladder, hc)] = progress

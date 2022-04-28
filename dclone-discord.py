@@ -141,7 +141,7 @@ class DiscordClient(discord.Client):
         Status changes are compared to the last known status and a message is sent to Discord if the status changed.
         """
         # print('>> Checking DClone Status...')
-        status = self.dclone.get_dclone_status()
+        status = self.dclone.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
         if not status:
             return
 

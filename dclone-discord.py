@@ -24,12 +24,12 @@ DCLONE_HC = environ.get('DCLONE_HC', '2')  # 1 for Hardcore, 2 for Softcore, bla
 # Bot specific
 # Defaults to alerting at level 2 if the progress has been at this level for at least 120 seconds
 DCLONE_THRESHOLD = int(environ.get('DCLONE_THRESHOLD', 2))  # progress level to alert at (and above)
-DCLONE_DELAY = int(environ.get('DCLONE_DELAY', 120))  # delay reports by this many seconds to reduce trolling
+DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching reports required before alerting (reduces trolling)
 
 ########################
 # End of configuration #
 ########################
-__version__ = '0.1'
+__version__ = '0.2'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
 LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Hardcore and Softcore'}
 HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Ladder and Non-Ladder'}
@@ -42,9 +42,8 @@ if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
 
 class DCloneTracker():
     def __init__(self):
-        # Progress is tracked by the tuple (region, ladder, hc) and assumed to be 1 when the bot starts
-        # TODO: update this cache before the first run to reduce noise on bot restarts
-        self.progress_cache = {
+        # Current progress (last reported) for each mode
+        self.current_progress = {
             ('1', '1', '1'): 1,  # Americas, Ladder, Hardcore
             ('1', '1', '2'): 1,  # Americas, Ladder, Softcore
             ('1', '2', '1'): 1,  # Americas, Non-Ladder, Hardcore
@@ -57,6 +56,23 @@ class DCloneTracker():
             ('3', '1', '2'): 1,  # Asia, Ladder, Softcore
             ('3', '2', '1'): 1,  # Asia, Non-Ladder, Hardcore
             ('3', '2', '2'): 1,  # Asia, Non-Ladder, Softcore
+        }
+
+        # Recent reports for each mode. These are truncated to DCLONE_REPORTS and alerts are sent if
+        # all recent reports for a mode agree on the progress level. This reduces trolling but adds a small delay.
+        self.report_cache = {
+            ('1', '1', '1'): [1],  # Americas, Ladder, Hardcore
+            ('1', '1', '2'): [1],  # Americas, Ladder, Softcore
+            ('1', '2', '1'): [1],  # Americas, Non-Ladder, Hardcore
+            ('1', '2', '2'): [1],  # Americas, Non-Ladder, Softcore
+            ('2', '1', '1'): [1],  # Europe, Ladder, Hardcore
+            ('2', '1', '2'): [1],  # Europe, Ladder, Softcore
+            ('2', '2', '1'): [1],  # Europe, Non-Ladder, Hardcore
+            ('2', '2', '2'): [1],  # Europe, Non-Ladder, Softcore
+            ('3', '1', '1'): [1],  # Asia, Ladder, Hardcore
+            ('3', '1', '2'): [1],  # Asia, Ladder, Softcore
+            ('3', '2', '1'): [1],  # Asia, Non-Ladder, Hardcore
+            ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
     def get_dclone_status(self, region='', ladder='', hc=''):
@@ -77,12 +93,32 @@ class DCloneTracker():
             print(f'DClone Tracker API Error: {e}')
             return None
 
+    def should_update(self, mode):
+        """
+        For a given game mode, returns True/False if we should post an alert to Discord.
+
+        This checks for DCLONE_REPORTS number of matching progress reports which is intended to reduce trolling.
+        A larger number for DCLONE_REPORTS will alert sooner but is more sucpeitible to trolling/false reports and
+        a smaller number of DCLONE_REPORTS will alert later but is less susceptible to trolling/false reports.
+
+        Since we're checking every 60 seconds any mode with the same progress report for 60*DCLONE_REPORTS seconds
+        will also be reported as a change.
+        """
+        reports = self.report_cache[mode][-DCLONE_REPORTS:]
+        self.report_cache[mode] = reports  # truncate recent reports
+
+        # if the last DCLONE_REPORTS reports agree on the progress level, we should update
+        if all(reports[0] == x for x in reports):
+            return True
+        else:
+            return False
+
 
 class DiscordClient(discord.Client):
     """
     Connects to Discord and starts a background task that checks the diablo2.io dclone API every 60 seconds.
-    When a progress change occurs that is greater than or equal to DCLONE_THRESHOLD and more than DCLONE_DELAY
-    seconds old, the bot will send a message to the configured DISCORD_CHANNEL_ID.
+    When a progress change occurs that is greater than or equal to DCLONE_THRESHOLD and for more than DCLONE_REPORTS
+    consecutive updates, the bot will send a message to the configured DISCORD_CHANNEL_ID.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -116,11 +152,14 @@ class DiscordClient(discord.Client):
             hc = data.get('hc')
             progress = int(data.get('progress'))
 
-            progress_was = self.dclone.progress_cache.get((region, ladder, hc))
+            progress_was = self.dclone.current_progress.get((region, ladder, hc))
             updated_ago = int(time() - int(data.get('timestamped')))
 
+            # add the most recent report
+            self.dclone.report_cache[(region, ladder, hc)].append(progress)
+
             # handle progress changes
-            if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and updated_ago >= DCLONE_DELAY:
+            if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hc)):
                 print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} is now {progress}/6 (was {progress_was}/6) -- {updated_ago} seconds ago')
 
                 # post to discord
@@ -129,15 +168,22 @@ class DiscordClient(discord.Client):
                 channel = self.get_channel(DISCORD_CHANNEL_ID)
                 await channel.send(message)
 
-                # update our cache (last status change)
-                self.dclone.progress_cache[(region, ladder, hc)] = progress
-            elif progress < progress_was and progress == 1 and updated_ago >= DCLONE_DELAY:
-                # we need to reset to 1 after a spawn; this will cause duplicate messages if someone
-                # incorrectly sets progress to 1 and it stays for more than DCLONE_DELAY seconds
+                # update current status
+                self.dclone.current_progress[(region, ladder, hc)] = progress
+            elif progress < progress_was and progress == 1 and self.dclone.should_update((region, ladder, hc)):
+                # progress increases are interesting, but we also need to reset to 1 after dclone spawns
                 print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} resetting to 1 after assumed spawn')
-                self.dclone.progress_cache[(region, ladder, hc)] = progress
+
+                # post to discord
+                message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone probably spawned less than {max(1,DCLONE_REPORTS)} minutes ago'
+                message += '\n> Data courtesy of diablo2.io'
+                channel = self.get_channel(DISCORD_CHANNEL_ID)
+                await channel.send(message)
+
+                # update current status
+                self.dclone.current_progress[(region, ladder, hc)] = progress
             elif progress != progress_was:
-                # report suspicious progress changes, these are not sent to discord
+                # track suspicious progress changes, these are not sent to discord
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 (was {progress_was}/6) -- {updated_ago} seconds ago')
 
     @check_dclone_status.before_loop

@@ -29,7 +29,7 @@ Configuration is done via environment variables, or you can edit the variables n
  - `DCLONE_LADDER`: `1` for Ladder, `2` for Non-Ladder **(Default)**, blank for both.
  - `DCLONE_HC`: `1` for Harcore, `2` for Softcore **(Default)**, blank for both.
  - `DCLONE_THRESHOLD`: Progress level to report at (and above). Default is 2.
- - `DCLONE_DELAY`: Only report changes after this many seconds (to reduce troll reports). Default is 120 seconds`
+ - `DCLONE_REPORTS`: Only report changes after this many reports agree on a change. Default is 3.
 
 ### Running
 

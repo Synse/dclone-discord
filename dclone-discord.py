@@ -23,7 +23,7 @@ DCLONE_LADDER = environ.get('DCLONE_LADDER', '2')  # 1 for Ladder, 2 for Non-Lad
 DCLONE_HC = environ.get('DCLONE_HC', '2')  # 1 for Hardcore, 2 for Softcore, blank for all
 
 # Bot specific
-# Defaults to alerting at level 2 if the progress has been at this level for at least 120 seconds
+# Defaults to alerting at level 2 if the last 3 progress reports match
 DCLONE_THRESHOLD = int(environ.get('DCLONE_THRESHOLD', 2))  # progress level to alert at (and above)
 DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching reports required before alerting (reduces trolling)
 
@@ -32,8 +32,8 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 __version__ = '0.3'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
-LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Hardcore and Softcore'}
-HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Ladder and Non-Ladder'}
+LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
+HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:

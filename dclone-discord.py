@@ -175,6 +175,7 @@ class DiscordClient(discord.Client):
         """
         # print('>> Checking DClone Status...')
         status = self.dclone.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
         if not status:
             return
 
@@ -192,6 +193,7 @@ class DiscordClient(discord.Client):
             self.dclone.report_cache[(region, ladder, hc)].append(progress)
 
             # handle progress changes
+            # TODO: bundle multiple changes into one message
             if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hc)):
                 print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} is now {progress}/6 (was {progress_was}/6) -- {updated_ago} seconds ago')
 
@@ -219,7 +221,7 @@ class DiscordClient(discord.Client):
                 self.dclone.current_progress[(region, ladder, hc)] = progress
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
-                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 (was {progress_was}/6) -- {updated_ago} seconds ago')
+                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 (currently {progress_was}/6) {updated_ago}s ago')
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):

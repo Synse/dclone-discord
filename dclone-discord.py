@@ -30,7 +30,7 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.3'
+__version__ = '0.4'
 REGION = {'1': ':flag_us: Americas', '2': ':flag_eu: Europe', '3': ':flag_kr: Asia', '': 'All Regions'}
 LADDER = {'1': ':ladder: Ladder', '2': ':crossed_swords: Non-Ladder', '': 'Ladder and Non-Ladder'}
 HC = {'1': ':skull_crossbones: Hardcore', '2': ':mage: Softcore', '': 'Hardcore and Softcore'}

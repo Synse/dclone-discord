@@ -19,7 +19,7 @@ DISCORD_CHANNEL_ID = int(environ.get('DISCORD_CHANNEL_ID'))
 # DClone tracker API
 # Defaults to All Regions, Non-Ladder, Softcore
 DCLONE_REGION = environ.get('DCLONE_REGION', '')  # 1 for Americas, 2 for Europe, 3 for Asia, blank for all
-DCLONE_LADDER = environ.get('DCLONE_LADDER', '2')  # 1 for Ladder, 2 for Non-Ladder, blank for all
+DCLONE_LADDER = environ.get('DCLONE_LADDER', '')  # 1 for Ladder, 2 for Non-Ladder, blank for all
 DCLONE_HC = environ.get('DCLONE_HC', '2')  # 1 for Hardcore, 2 for Softcore, blank for all
 
 # Bot specific

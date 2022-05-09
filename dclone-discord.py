@@ -31,9 +31,9 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 # End of configuration #
 ########################
 __version__ = '0.3'
-REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
-LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
-HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
+REGION = {'1': ':flag_us: Americas', '2': ':flag_eu: Europe', '3': ':flag_kr: Asia', '': 'All Regions'}
+LADDER = {'1': ':ladder: Ladder', '2': ':crossed_swords: Non-Ladder', '': 'Ladder and Non-Ladder'}
+HC = {'1': ':skull_crossbones: Hardcore', '2': ':mage: Softcore', '': 'Hardcore and Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
@@ -216,7 +216,8 @@ class DiscordClient(discord.Client):
 
                 # if we believe dclone spawned, post to discord
                 if progress == 1:
-                    message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone probably spawned less than {max(1,DCLONE_REPORTS)}m ago'
+                    message = ':japanese_ogre: :japanese_ogre: :japanese_ogre: '
+                    message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** possible DClone spawn less than {max(1,DCLONE_REPORTS)}m ago'
                     message += '\n> Data courtesy of diablo2.io'
                     channel = self.get_channel(DISCORD_CHANNEL_ID)
                     await channel.send(message)

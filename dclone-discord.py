@@ -164,6 +164,7 @@ class DiscordClient(discord.Client):
         This is called any time the bot receives a message. It implements the dclone chatop.
         """
         if message.content.startswith('.dclone') or message.content.startswith('!dclone'):
+            print(f'Responding to dclone chatop from {message.author}')
             current_status = self.dclone.current_progress_message()
 
             if current_status:
@@ -229,6 +230,32 @@ class DiscordClient(discord.Client):
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):
         await self.wait_until_ready()  # wait until the bot logs in
+
+        # get the current progress from the dclone API
+        status = self.dclone.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+
+        if not status:
+            print('Unable to set the current progress at startup')
+            return
+
+        # set the current status and populate the report cache with this value
+        # this prevents a duplicate message from being sent when the bot starts
+        # we are assuming the report at startup is correct (not a troll/false report)
+        # but this should be fine most of the time
+        for data in status:
+            region = data.get('region')
+            ladder = data.get('ladder')
+            hc = data.get('hc')
+            progress = int(data.get('progress'))
+
+            # set current progress and report
+            self.dclone.current_progress[(region, ladder, hc)] = progress
+            if progress != 1:
+                print(f'Progress for {REGION[region]} {LADDER[ladder]} {HC[hc]} starting at {progress}/6')
+
+            # populate the report cache with DCLONE_REPORTS number of reports at this progress
+            for x in range(0, DCLONE_REPORTS):
+                self.dclone.report_cache[(region, ladder, hc)].append(progress)
 
 
 client = DiscordClient(intents=discord.Intents.default())

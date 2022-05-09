@@ -154,7 +154,10 @@ class DiscordClient(discord.Client):
 
     async def on_ready(self):
         print(f'Bot logged into Discord as {self.user}')
-        self.check_dclone_status.start()
+        try:
+            self.check_dclone_status.start()
+        except RuntimeError as e:
+            print(f'Background Task Error: {e}')
 
     async def on_message(self, message):
         """

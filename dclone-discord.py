@@ -86,7 +86,7 @@ class DCloneTracker():
             url = 'https://diablo2.io/dclone_api.php'
             params = {'region': region, 'ladder': ladder, 'hc': hc}
             headers = {'User-Agent': f'dclone-discord/{__version__}'}
-            response = get(url, params=params, headers=headers)
+            response = get(url, params=params, headers=headers, timeout=10)
 
             response.raise_for_status()
             return response.json()

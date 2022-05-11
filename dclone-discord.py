@@ -101,9 +101,11 @@ class DCloneTracker():
         # Get the current dclone status
         # TODO: Return from current_progress instead of querying the API every time
         status = self.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
-        status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
         if not status:
             return
+
+        # Sort
+        status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
 
         # Build a message for the current progress of each mode
         message = 'Current DClone Progress:\n'

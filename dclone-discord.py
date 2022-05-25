@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Discord Bot for tracking DClone - https://github.com/Synse/discord-dclone
 from datetime import timedelta
-from discord.ext import tasks
 from os import environ
-from requests import get
 from time import time
+from requests import get
+from discord.ext import tasks
 import discord
 
 #####################

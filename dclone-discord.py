@@ -30,7 +30,7 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.4'
+__version__ = '0.5'
 REGION = {'1': ':flag_us: Americas', '2': ':flag_eu: Europe', '3': ':flag_kr: Asia', '': 'All Regions'}
 LADDER = {'1': ':ladder: Ladder', '2': ':crossed_swords: Non-Ladder', '': 'Ladder and Non-Ladder'}
 HC = {'1': ':skull_crossbones: Hardcore', '2': ':mage: Softcore', '': 'Hardcore and Softcore'}
@@ -126,7 +126,7 @@ class DCloneTracker():
         For a given game mode, returns True/False if we should post an alert to Discord.
 
         This checks for DCLONE_REPORTS number of matching progress reports which is intended to reduce trolling.
-        A larger number for DCLONE_REPORTS will alert sooner but is more sucpeitible to trolling/false reports and
+        A larger number for DCLONE_REPORTS will alert sooner but is more susceptible to trolling/false reports and
         a smaller number of DCLONE_REPORTS will alert later but is less susceptible to trolling/false reports.
 
         Since we're checking every 60 seconds any mode with the same progress report for 60*DCLONE_REPORTS seconds

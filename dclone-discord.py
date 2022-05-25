@@ -102,7 +102,7 @@ class DCloneTracker():
         # TODO: Return from current_progress instead of querying the API every time
         status = self.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
         if not status:
-            return
+            return 'DClone Tracker API Error, please try again later.'
 
         # Sort
         status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
@@ -169,9 +169,8 @@ class DiscordClient(discord.Client):
             print(f'Responding to dclone chatop from {message.author}')
             current_status = self.dclone.current_progress_message()
 
-            if current_status:
-                channel = self.get_channel(message.channel.id)
-                await channel.send(current_status)
+            channel = self.get_channel(message.channel.id)
+            await channel.send(current_status)
 
     @tasks.loop(seconds=60)
     async def check_dclone_status(self):

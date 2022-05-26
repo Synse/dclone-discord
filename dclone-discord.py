@@ -271,7 +271,7 @@ class DiscordClient(discord.Client):
                 print(f'Progress for {REGION[region]} {LADDER[ladder]} {HC[hc]} starting at {progress}/6 (reporter_id: {reporter_id})')
 
             # populate the report cache with DCLONE_REPORTS number of reports at this progress
-            for x in range(0, DCLONE_REPORTS):
+            for _ in range(0, DCLONE_REPORTS):
                 self.dclone.report_cache[(region, ladder, hc)].append(progress)
 
 

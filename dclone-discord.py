@@ -46,10 +46,13 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.5'
+__version__ = '0.6'
 REGION = {'1': ':flag_us: Americas', '2': ':flag_eu: Europe', '3': ':flag_kr: Asia', '': 'All Regions'}
+REGION_RW = {'Americas': ':flag_us: Americas', 'Europe': ':flag_eu: Europe', 'Asia': ':flag_kr: Asia', 'TBD': ':grey_question: TBD'}
 LADDER = {'1': ':ladder: Ladder', '2': ':crossed_swords: Non-Ladder', '': 'Ladder and Non-Ladder'}
+LADDER_RW = {True: ':ladder: Ladder', False: ':crossed_swords: Non-Ladder'}
 HC = {'1': ':skull_crossbones: Hardcore', '2': ':mage: Softcore', '': 'Hardcore and Softcore'}
+HC_RW = {True: ':skull_crossbones: Hardcore', False: ':mage: Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
@@ -95,6 +98,9 @@ class DCloneTracker():
             ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
+        # Tracks planned walks from D2RuneWizard that have already alerted
+        self.alerted_walks = []
+
     def get_dclone_status(self, region='', ladder='', hc=''):
         """
         Get the current dclone status from the diablo2.io dclone public API.
@@ -137,6 +143,27 @@ class DCloneTracker():
 
             message += f' - **{REGION[region]} {LADDER[ladder]} {HC[hc]}** is `{progress}/6` ({ago} ago)\n'
         message += '> Data provided by diablo2.io'
+
+        # Get planned walks from d2runewizard.com API
+        try:
+            r = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+            r.raise_for_status()
+
+            planned_walks = r.json().get('walks')
+            if len(planned_walks) > 0:
+                message += '\n\nPlanned Walks:\n'
+                for walk in planned_walks:
+                    region = walk.get('region')
+                    ladder = walk.get('ladder')
+                    hardcore = walk.get('hardcore')
+                    timestamp = int(walk.get('timestamp') / 1000)
+                    name = walk.get('displayName')
+
+                    # TODO: filter to configured mode
+                    message += f' - **{REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`\n'
+                message += '> Data provided by d2runewizard.com'
+        except Exception as e:
+            print(f'[ChatOp] D2RuneWizard API Error: {e}')
 
         return message
 
@@ -255,6 +282,37 @@ class DiscordClient(discord.Client):
                 # track suspicious progress changes, these are not sent to discord
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 ' +
                       f'(currently {progress_was}/6) {updated_ago}s ago (reporter_id: {reporter_id})')
+
+        # Check for upcoming walks using the D2RuneWizard API
+        try:
+            r = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+            r.raise_for_status()
+
+            walks = r.json().get('walks')
+            for walk in walks:
+                id = walk.get('id')
+                timestamp = int(walk.get('timestamp') / 1000)
+                walk_in_mins = int(int(timestamp - time()) / 60)
+
+                # For walks in the next hour, send an alert if we have not already sent one
+                if walk_in_mins <= 60 and id not in self.dclone.alerted_walks:
+                    region = walk.get('region')
+                    ladder = walk.get('ladder')
+                    hardcore = walk.get('hardcore')
+                    name = walk.get('displayName')
+
+                    # post to discord
+                    print(f'[PlannedWalk] {REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m')
+                    message = f':alarm_clock: Upcoming walk for **{REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
+                    message += f'reported by `{name}` starts at <t:{timestamp}:f>'
+                    message += '\n> Data courtesy of d2runewizard.com'
+
+                    channel = self.get_channel(DISCORD_CHANNEL_ID)
+                    await channel.send(message)
+
+                    self.dclone.alerted_walks.append(id)
+        except Exception as e:
+            print(f'[PlannedWalk] D2RuneWizard API Error: {e}')
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):

@@ -1,10 +1,10 @@
 # dclone-discord
 
-![](https://img.shields.io/badge/version-0.5-blue)
+![](https://img.shields.io/badge/version-0.6-blue)
 
-A Discord bot for reporting [DClone Tracker](https://diablo2.io/dclonetracker.php) progress changes for Diablo 2: Resurrected. By default it will report any progress changes at or above level 2 for All Regions, Ladder and Non-Ladder, Softcore.
+A Discord bot for reporting [DClone Tracker](https://diablo2.io/dclonetracker.php) progress changes and upcoming planned walks for Diablo 2: Resurrected. By default it will report any progress changes at or above level 2 for All Regions, Ladder and Non-Ladder, Softcore and planned walks an hour before they start.
 
-You can also get the current progress for tracked regions by typing `.dclone` or `!dclone` in chat.
+You can also get the current progress for tracked regions and upcoming walk information by typing `.dclone` or `!dclone` in chat.
 
 ## Usage
 
@@ -39,4 +39,4 @@ Start the bot with `python3 dclone-discord.py`.
 
 ## Disclaimer
 
-Data courtesy of [diablo2.io](https://diablo2.io/dclonetracker.php). Find more information about the API backing this project [here](https://diablo2.io/forums/diablo-clone-uber-diablo-tracker-public-api-t906872.html).
+Data courtesy of [diablo2.io](https://diablo2.io/dclonetracker.php) and [d2runewizard.com](https://d2runewizard.com/diablo-clone-tracker).

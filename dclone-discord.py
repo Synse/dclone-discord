@@ -42,6 +42,9 @@ if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
 
 
 class DCloneTracker():
+    """
+    Tracks current DClone progress, interacts with the DClone API, and various helper methods.
+    """
     def __init__(self):
         # Current progress (last reported) for each mode
         self.current_progress = {
@@ -102,7 +105,7 @@ class DCloneTracker():
         # TODO: Return from current_progress instead of querying the API every time
         status = self.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
         if not status:
-            return 'DClone Tracker API Error, please try again later.'
+            return '[ChatOp] DClone Tracker API Error, please try again later.'
 
         # Sort
         status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
@@ -155,6 +158,9 @@ class DiscordClient(discord.Client):
         print(f'Tracking DClone for {REGION[DCLONE_REGION]}, {LADDER[DCLONE_LADDER]}, {HC[DCLONE_HC]}')
 
     async def on_ready(self):
+        """
+        Runs when the bot is connected to Discord and ready to receive messages. This starts our background task.
+        """
         print(f'Bot logged into Discord as {self.user}')
         try:
             self.check_dclone_status.start()
@@ -207,6 +213,7 @@ class DiscordClient(discord.Client):
                 # post to discord
                 message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone progressed (reporter_id: {reporter_id})'
                 message += '\n> Data courtesy of diablo2.io'
+
                 channel = self.get_channel(DISCORD_CHANNEL_ID)
                 await channel.send(message)
 
@@ -222,6 +229,7 @@ class DiscordClient(discord.Client):
                     message = ':japanese_ogre: :japanese_ogre: :japanese_ogre: '
                     message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** possible DClone spawn less than {max(1,DCLONE_REPORTS)}m ago'
                     message += '\n> Data courtesy of diablo2.io'
+
                     channel = self.get_channel(DISCORD_CHANNEL_ID)
                     await channel.send(message)
 
@@ -234,6 +242,9 @@ class DiscordClient(discord.Client):
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):
+        """
+        Runs before the background task starts. This waits for the bot to connect to Discord and sets the initial dclone status.
+        """
         await self.wait_until_ready()  # wait until the bot logs in
 
         # get the current progress from the dclone API

@@ -228,7 +228,7 @@ class Diablo2IOClient():
                     timestamp = int(walk.get('timestamp') / 1000)
                     name = walk.get('displayName')
                     emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
-                    unconfirmed = ' **[UNCONFIRMED]]**' if not walk.get('confirmed') else ''
+                    unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
 
                     # TODO: filter to configured mode
                     message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
@@ -368,7 +368,7 @@ class DiscordClient(discord.Client):
                 walk_in_mins = int(int(timestamp - time()) / 60)
 
                 # For walks in the next hour, send an alert if we have not already sent one
-                if walk_in_mins <= 60 and id not in self.dclone.alerted_walks:
+                if walk_in_mins <= 60 and walk_id not in self.dclone.alerted_walks:
                     region = walk.get('region')
                     ladder = walk.get('ladder')
                     hardcore = walk.get('hardcore')
@@ -378,8 +378,8 @@ class DiscordClient(discord.Client):
 
                     # post to discord
                     print(f'[PlannedWalk] {region} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m {unconfirmed}')
-                    message = f':alarm_clock: Upcoming walk for {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
-                    message += f'reported by `{name}` starts at <t:{timestamp}:f>{unconfirmed}'
+                    message = f'{emoji} Upcoming walk for **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
+                    message += f'starts at <t:{timestamp}:f> (reported by `{name}`){unconfirmed}'
                     message += '\n> Data courtesy of d2runewizard.com'
 
                     channel = self.get_channel(DISCORD_CHANNEL_ID)

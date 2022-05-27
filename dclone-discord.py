@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from os import environ
-from time import time
 from requests import get
 from discord.ext import tasks
 import discord
@@ -253,7 +252,6 @@ class DiscordClient(discord.Client):
             emoji = self.dclone.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             progress_was = self.dclone.current_progress.get((region, ladder, hardcore))
-            updated_ago = int(time() - int(data.get('timestamped')))
 
             # add the most recent report
             self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
@@ -261,8 +259,7 @@ class DiscordClient(discord.Client):
             # handle progress changes
             # TODO: bundle multiple changes into one message?
             if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hardcore)):
-                print(f'{REGION[region]} {LADDER[ladder]} {HC[hardcore]} is now {progress}/6 (was {progress_was}/6) ' +
-                      f'-- {updated_ago} seconds ago (reporter_id: {reporter_id})')
+                print(f'{REGION[region]} {LADDER[ladder]} {HC[hardcore]} is now {progress}/6 (was {progress_was}/6) (reporter_id: {reporter_id})')
 
                 # post to discord
                 message = f'[{progress}/6] {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
@@ -292,7 +289,7 @@ class DiscordClient(discord.Client):
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
-                      f'(currently {progress_was}/6) {updated_ago}s ago (reporter_id: {reporter_id})')
+                      f'(currently {progress_was}/6) (reporter_id: {reporter_id})')
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):

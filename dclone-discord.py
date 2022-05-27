@@ -136,7 +136,8 @@ class Diablo2IOClient():
         # tracks planned walks from D2RuneWizard that have already alerted
         self.alerted_walks = []
 
-    def emoji(self, region='', ladder='', hardcore=''):
+    @staticmethod
+    def emoji(region='', ladder='', hardcore=''):
         """
         Returns a string of Discord emoji for a given game mode.
 
@@ -208,7 +209,7 @@ class Diablo2IOClient():
             hardcore = data.get('hc')
             progress = int(data.get('progress'))
             timestamped = int(data.get('timestamped'))
-            emoji = self.emoji(region=region, ladder=ladder, hardcore=hardcore)
+            emoji = Diablo2IOClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data courtesy of diablo2.io'
@@ -314,7 +315,7 @@ class DiscordClient(discord.Client):
             hardcore = data.get('hc')
             progress = int(data.get('progress'))
             reporter_id = data.get('reporter_id')
-            emoji = self.dclone.emoji(region=region, ladder=ladder, hardcore=hardcore)
+            emoji = Diablo2IOClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             progress_was = self.dclone.current_progress.get((region, ladder, hardcore))
 

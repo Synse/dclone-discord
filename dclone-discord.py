@@ -95,7 +95,7 @@ class Diablo2IOClient():
             ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
-    def status(self, region='', ladder='', hc=''):
+    def status(self, region='', ladder='', hardcore=''):
         """
         Get the currently reported dclone status from the diablo2.io dclone API.
 
@@ -103,12 +103,12 @@ class Diablo2IOClient():
 
         :param region: region to get status for (1 for Americas, 2 for Europe, 3 for Asia, blank for all)
         :param ladder: ladder or non-ladder (1 for Ladder, 2 for Non-Ladder, blank for all)
-        :param hc: hardcore or softcore (1 for Hardcore, 2 for Softcore, blank for all)
+        :param hardcore: hardcore or softcore (1 for Hardcore, 2 for Softcore, blank for all)
         :return: current dclone status as json
         """
         try:
             url = 'https://diablo2.io/dclone_api.php'
-            params = {'region': region, 'ladder': ladder, 'hc': hc}
+            params = {'region': region, 'ladder': ladder, 'hc': hardcore}
             headers = {'User-Agent': f'dclone-discord/{__version__}'}
             response = get(url, params=params, headers=headers, timeout=10)
 
@@ -124,7 +124,7 @@ class Diablo2IOClient():
         """
         # Get the currently reported dclone status
         # TODO: Return from current_progress instead of querying the API every time?
-        status = self.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = self.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hardcore=DCLONE_HC)
         if not status:
             return '[Diablo2IOClient.progress_message] API error, please try again later.'
 
@@ -210,7 +210,7 @@ class DiscordClient(discord.Client):
         Status changes are compared to the last known status and a message is sent to Discord if the status changed.
         """
         # print('>> Checking DClone Status...')
-        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hardcore=DCLONE_HC)
         if not status:
             return
 
@@ -218,50 +218,50 @@ class DiscordClient(discord.Client):
         for data in status:
             region = data.get('region')
             ladder = data.get('ladder')
-            hc = data.get('hc')
+            hardcore = data.get('hc')
             progress = int(data.get('progress'))
             reporter_id = data.get('reporter_id')
 
-            progress_was = self.dclone.current_progress.get((region, ladder, hc))
+            progress_was = self.dclone.current_progress.get((region, ladder, hardcore))
             updated_ago = int(time() - int(data.get('timestamped')))
 
             # add the most recent report
-            self.dclone.report_cache[(region, ladder, hc)].append(progress)
+            self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
 
             # handle progress changes
             # TODO: bundle multiple changes into one message
-            if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hc)):
-                print(f'{REGION[region]} {LADDER[ladder]} {HC[hc]} is now {progress}/6 (was {progress_was}/6) ' +
+            if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hardcore)):
+                print(f'{REGION[region]} {LADDER[ladder]} {HC[hardcore]} is now {progress}/6 (was {progress_was}/6) ' +
                       f'-- {updated_ago} seconds ago (reporter_id: {reporter_id})')
 
                 # post to discord
-                message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** DClone progressed (reporter_id: {reporter_id})'
+                message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
                 message += '\n> Data courtesy of diablo2.io'
 
                 channel = self.get_channel(DISCORD_CHANNEL_ID)
                 await channel.send(message)
 
                 # update current status
-                self.dclone.current_progress[(region, ladder, hc)] = progress
-            elif progress < progress_was and self.dclone.should_update((region, ladder, hc)):
+                self.dclone.current_progress[(region, ladder, hardcore)] = progress
+            elif progress < progress_was and self.dclone.should_update((region, ladder, hardcore)):
                 # progress increases are interesting, but we also need to reset to 1 after dclone spawns
                 # and to roll it back if the new confirmed progress is less than the current progress
-                print(f'[RollBack] {REGION[region]} {LADDER[ladder]} {HC[hc]} rolling back to {progress} (reporter_id: {reporter_id})')
+                print(f'[RollBack] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} rolling back to {progress} (reporter_id: {reporter_id})')
 
                 # if we believe dclone spawned, post to discord
                 if progress == 1:
                     message = ':japanese_ogre: :japanese_ogre: :japanese_ogre: '
-                    message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hc]}** possible DClone spawn less than {max(1,DCLONE_REPORTS)}m ago'
+                    message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone may have spawned (reporter_id: {reporter_id})'
                     message += '\n> Data courtesy of diablo2.io'
 
                     channel = self.get_channel(DISCORD_CHANNEL_ID)
                     await channel.send(message)
 
                 # update current status
-                self.dclone.current_progress[(region, ladder, hc)] = progress
+                self.dclone.current_progress[(region, ladder, hardcore)] = progress
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
-                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hc]} reported as {progress}/6 ' +
+                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
                       f'(currently {progress_was}/6) {updated_ago}s ago (reporter_id: {reporter_id})')
 
     @check_dclone_status.before_loop
@@ -272,7 +272,7 @@ class DiscordClient(discord.Client):
         await self.wait_until_ready()  # wait until the bot logs in
 
         # get the current progress from the dclone API
-        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hardcore=DCLONE_HC)
 
         if not status:
             print('Unable to set the current progress at startup')
@@ -285,18 +285,18 @@ class DiscordClient(discord.Client):
         for data in status:
             region = data.get('region')
             ladder = data.get('ladder')
-            hc = data.get('hc')
+            hardcore = data.get('hc')
             progress = int(data.get('progress'))
             reporter_id = data.get('reporter_id')
 
             # set current progress and report
-            self.dclone.current_progress[(region, ladder, hc)] = progress
+            self.dclone.current_progress[(region, ladder, hardcore)] = progress
             if progress != 1:
-                print(f'Progress for {REGION[region]} {LADDER[ladder]} {HC[hc]} starting at {progress}/6 (reporter_id: {reporter_id})')
+                print(f'Progress for {REGION[region]} {LADDER[ladder]} {HC[hardcore]} starting at {progress}/6 (reporter_id: {reporter_id})')
 
             # populate the report cache with DCLONE_REPORTS number of reports at this progress
             for _ in range(0, DCLONE_REPORTS):
-                self.dclone.report_cache[(region, ladder, hc)].append(progress)
+                self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
 
 
 client = DiscordClient(intents=discord.Intents.default())

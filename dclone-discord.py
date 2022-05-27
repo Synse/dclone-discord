@@ -46,9 +46,9 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 # End of configuration #
 ########################
 __version__ = '0.5'
-REGION = {'1': ':flag_us: Americas', '2': ':flag_eu: Europe', '3': ':flag_kr: Asia', '': 'All Regions'}
-LADDER = {'1': ':ladder: Ladder', '2': ':crossed_swords: Non-Ladder', '': 'Ladder and Non-Ladder'}
-HC = {'1': ':skull_crossbones: Hardcore', '2': ':mage: Softcore', '': 'Hardcore and Softcore'}
+REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
+LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
+HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
@@ -95,6 +95,34 @@ class Diablo2IOClient():
             ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
+    def emoji(self, region='', ladder='', hardcore=''):
+        """
+        Returns a string of Discord emoji for a given game mode.
+
+        :param region: 1 for Americas, 2 for Europe, 3 for Asia
+        :param ladder: 1 for Ladder, 2 for Non-Ladder
+        :param hardcore: 1 for Hardcore, 2 for Softcore
+        :return: Discord emoji string
+        """
+        if region == '1':
+            region = ':flag_us:'
+        elif region == '2':
+            region = ':flag_eu:'
+        elif region == '3':
+            region = ':flag_kr:'
+
+        if ladder == '1':
+            ladder = ':ladder:'
+        elif ladder == '2':
+            ladder = ':crossed_swords:'
+
+        if hardcore == '1':
+            hardcore = ':skull_crossbones:'
+        elif hardcore == '2':
+            hardcore = ':mage:'
+
+        return f'{region} {ladder} {hardcore}'
+
     def status(self, region='', ladder='', hardcore=''):
         """
         Get the currently reported dclone status from the diablo2.io dclone API.
@@ -122,16 +150,16 @@ class Diablo2IOClient():
         """
         Returns a formatted message of the current dclone status by mode (region, ladder, hc).
         """
-        # Get the currently reported dclone status
-        # TODO: Return from current_progress instead of querying the API every time?
+        # get the currently reported dclone status
+        # TODO: return from current_progress instead of querying the API every time?
         status = self.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hardcore=DCLONE_HC)
         if not status:
             return '[Diablo2IOClient.progress_message] API error, please try again later.'
 
-        # Sort the status by mode (region, ladder, hc)
+        # sort the status by mode (region, ladder, hc)
         status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
 
-        # Build the message
+        # build the message
         message = 'Current DClone Progress:\n'
         for data in status:
             region = data.get('region')
@@ -139,8 +167,9 @@ class Diablo2IOClient():
             hardcore = data.get('hc')
             progress = int(data.get('progress'))
             timestamped = int(data.get('timestamped'))
+            emoji = self.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
-            message += f' - **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
+            message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data provided by diablo2.io'
 
         return message
@@ -221,6 +250,7 @@ class DiscordClient(discord.Client):
             hardcore = data.get('hc')
             progress = int(data.get('progress'))
             reporter_id = data.get('reporter_id')
+            emoji = self.dclone.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             progress_was = self.dclone.current_progress.get((region, ladder, hardcore))
             updated_ago = int(time() - int(data.get('timestamped')))
@@ -229,13 +259,13 @@ class DiscordClient(discord.Client):
             self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
 
             # handle progress changes
-            # TODO: bundle multiple changes into one message
+            # TODO: bundle multiple changes into one message?
             if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hardcore)):
                 print(f'{REGION[region]} {LADDER[ladder]} {HC[hardcore]} is now {progress}/6 (was {progress_was}/6) ' +
                       f'-- {updated_ago} seconds ago (reporter_id: {reporter_id})')
 
                 # post to discord
-                message = f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
+                message = f'[{progress}/6] {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
                 message += '\n> Data courtesy of diablo2.io'
 
                 channel = self.get_channel(DISCORD_CHANNEL_ID)

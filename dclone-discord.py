@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from os import environ
+from time import time
 from requests import get
 from discord.ext import tasks
 import discord
@@ -56,6 +57,39 @@ HC_RW = {True: ':skull_crossbones: Hardcore', False: ':mage: Softcore'}
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
     print('Please set DISCORD_TOKEN and DISCORD_CHANNEL_ID in your environment.')
     exit(1)
+
+
+class D2RuneWizardClient():
+    """
+    Interacts with the d2runewizard.com API to get planned walks.
+    """
+    def emoji(self, region='', ladder='', hardcore=''):
+        """
+        Returns a string of Discord emoji for a given mode.
+
+        :param region: region to get emoji for
+        :param ladder: ladder to get emoji for
+        :param hardcore: hardcore to get emoji for
+        :return: string of Discord emoji
+        """
+        if region == 'Americas':
+            region = ':flag_us:'
+        elif region == 'Europe':
+            region = ':flag_eu:'
+        elif region == 'Asia':
+            region = ':flag_kr:'
+
+        if ladder is True:
+            ladder = ':ladder:'
+        elif ladder is False:
+            ladder = ':crossed_swords:'
+
+        if hardcore is True:
+            hardcore = ':skull_crossbones:'
+        elif hardcore is False:
+            hardcore = ':mage:'
+
+        return f'{region} {ladder} {hardcore}'
 
 
 class Diablo2IOClient():
@@ -179,10 +213,10 @@ class Diablo2IOClient():
 
         # Get planned walks from d2runewizard.com API
         try:
-            r = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
-            r.raise_for_status()
+            response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+            response.raise_for_status()
 
-            planned_walks = r.json().get('walks')
+            planned_walks = response.json().get('walks')
             if len(planned_walks) > 0:
                 message += '\n\nPlanned Walks:\n'
                 for walk in planned_walks:
@@ -320,12 +354,12 @@ class DiscordClient(discord.Client):
 
         # Check for upcoming walks using the D2RuneWizard API
         try:
-            r = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
-            r.raise_for_status()
+            response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+            response.raise_for_status()
 
-            walks = r.json().get('walks')
+            walks = response.json().get('walks')
             for walk in walks:
-                id = walk.get('id')
+                walk_id = walk.get('id')
                 timestamp = int(walk.get('timestamp') / 1000)
                 walk_in_mins = int(int(timestamp - time()) / 60)
 
@@ -345,7 +379,7 @@ class DiscordClient(discord.Client):
                     channel = self.get_channel(DISCORD_CHANNEL_ID)
                     await channel.send(message)
 
-                    self.dclone.alerted_walks.append(id)
+                    self.dclone.alerted_walks.append(walk_id)
         except Exception as e:
             print(f'[PlannedWalk] D2RuneWizard API Error: {e}')
 

@@ -28,17 +28,17 @@ import discord
 #####################
 # Setting environment variables is preferred, but you can also edit the variables below.
 
-# Discord
+# Discord (Required)
 DISCORD_TOKEN = environ.get('DISCORD_TOKEN')
 DISCORD_CHANNEL_ID = int(environ.get('DISCORD_CHANNEL_ID'))
 
-# DClone tracker API
-# Defaults to All Regions, Non-Ladder, Softcore
+# DClone tracker API (Optional)
+# Defaults to All Regions, Ladder and Non-Ladder, Softcore
 DCLONE_REGION = environ.get('DCLONE_REGION', '')  # 1 for Americas, 2 for Europe, 3 for Asia, blank for all
 DCLONE_LADDER = environ.get('DCLONE_LADDER', '')  # 1 for Ladder, 2 for Non-Ladder, blank for all
 DCLONE_HC = environ.get('DCLONE_HC', '2')  # 1 for Hardcore, 2 for Softcore, blank for all
 
-# Bot specific
+# Bot specific (Optional)
 # Defaults to alerting at level 2 if the last 3 progress reports match
 DCLONE_THRESHOLD = int(environ.get('DCLONE_THRESHOLD', 2))  # progress level to alert at (and above)
 DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching reports required before alerting (reduces trolling)

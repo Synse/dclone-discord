@@ -169,7 +169,7 @@ class Diablo2IOClient():
             emoji = self.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
-        message += '> Data provided by diablo2.io'
+        message += '> Data courtesy of diablo2.io'
 
         return message
 

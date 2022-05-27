@@ -16,7 +16,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from datetime import timedelta
 from os import environ
 from time import time
 from requests import get
@@ -57,12 +56,12 @@ if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
     exit(1)
 
 
-class DCloneTracker():
+class Diablo2IOClient():
     """
-    Tracks current DClone progress, interacts with the DClone API, and various helper methods.
+    Interacts with the diablo2.io dclone API. Tracks the current progress and recent reports for each mode.
     """
     def __init__(self):
-        # Current progress (last reported) for each mode
+        # Current progress (last alerted) for each mode
         self.current_progress = {
             ('1', '1', '1'): 1,  # Americas, Ladder, Hardcore
             ('1', '1', '2'): 1,  # Americas, Ladder, Softcore
@@ -79,7 +78,8 @@ class DCloneTracker():
         }
 
         # Recent reports for each mode. These are truncated to DCLONE_REPORTS and alerts are sent if
-        # all recent reports for a mode agree on the progress level. This reduces trolling but adds a small delay.
+        # all recent reports for a mode agree on the progress level. This reduces trolling/false reports
+        # but also increases the delay between a report and an alert.
         self.report_cache = {
             ('1', '1', '1'): [1],  # Americas, Ladder, Hardcore
             ('1', '1', '2'): [1],  # Americas, Ladder, Softcore
@@ -95,11 +95,16 @@ class DCloneTracker():
             ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
-    def get_dclone_status(self, region='', ladder='', hc=''):
+    def status(self, region='', ladder='', hc=''):
         """
-        Get the current dclone status from the diablo2.io dclone public API.
+        Get the currently reported dclone status from the diablo2.io dclone API.
 
-        Docs: https://diablo2.io/post2417121.html
+        API documentation: https://diablo2.io/post2417121.html
+
+        :param region: region to get status for (1 for Americas, 2 for Europe, 3 for Asia, blank for all)
+        :param ladder: ladder or non-ladder (1 for Ladder, 2 for Non-Ladder, blank for all)
+        :param hc: hardcore or softcore (1 for Hardcore, 2 for Softcore, blank for all)
+        :return: current dclone status as json
         """
         try:
             url = 'https://diablo2.io/dclone_api.php'
@@ -110,32 +115,32 @@ class DCloneTracker():
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f'DClone Tracker API Error: {e}')
+            print(f'[Diablo2IOClient.status] API Error: {e}')
             return None
 
-    def current_progress_message(self):
+    def progress_message(self):
         """
-        Returns a formatted message for the current dclone status by mode (region, ladder, hc).
+        Returns a formatted message of the current dclone status by mode (region, ladder, hc).
         """
-        # Get the current dclone status
-        # TODO: Return from current_progress instead of querying the API every time
-        status = self.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        # Get the currently reported dclone status
+        # TODO: Return from current_progress instead of querying the API every time?
+        status = self.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
         if not status:
-            return '[ChatOp] DClone Tracker API Error, please try again later.'
+            return '[Diablo2IOClient.progress_message] API error, please try again later.'
 
-        # Sort
+        # Sort the status by mode (region, ladder, hc)
         status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
 
-        # Build a message for the current progress of each mode
+        # Build the message
         message = 'Current DClone Progress:\n'
         for data in status:
             region = data.get('region')
             ladder = data.get('ladder')
-            hc = data.get('hc')
+            hardcore = data.get('hc')
             progress = int(data.get('progress'))
-            ago = timedelta(seconds=int(time() - int(data.get('timestamped'))))
+            timestamped = int(data.get('timestamped'))
 
-            message += f' - **{REGION[region]} {LADDER[ladder]} {HC[hc]}** is `{progress}/6` ({ago} ago)\n'
+            message += f' - **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data provided by diablo2.io'
 
         return message
@@ -144,12 +149,15 @@ class DCloneTracker():
         """
         For a given game mode, returns True/False if we should post an alert to Discord.
 
-        This checks for DCLONE_REPORTS number of matching progress reports which is intended to reduce trolling.
-        A larger number for DCLONE_REPORTS will alert sooner but is more susceptible to trolling/false reports and
-        a smaller number of DCLONE_REPORTS will alert later but is less susceptible to trolling/false reports.
+        This checks for DCLONE_REPORTS number of matching progress reports which is intended to reduce trolling/false reports.
+        A larger number for DCLONE_REPORTS will alert sooner (less delay) but is more susceptible to trolling/false reports and
+        a smaller number of DCLONE_REPORTS will alert later (more delay) but is less susceptible to trolling/false reports.
 
         Since we're checking every 60 seconds any mode with the same progress report for 60*DCLONE_REPORTS seconds
         will also be reported as a change.
+
+        :param mode: game mode (region, ladder, hc)
+        :return: True/False if we should post an alert to Discord
         """
         reports = self.report_cache[mode][-DCLONE_REPORTS:]
         self.report_cache[mode] = reports  # truncate recent reports
@@ -157,8 +165,8 @@ class DCloneTracker():
         # if the last DCLONE_REPORTS reports agree on the progress level, we should update
         if all(reports[0] == x for x in reports):
             return True
-        else:
-            return False
+
+        return False
 
 
 class DiscordClient(discord.Client):
@@ -170,7 +178,7 @@ class DiscordClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.dclone = DCloneTracker()
+        self.dclone = Diablo2IOClient()
         print(f'Tracking DClone for {REGION[DCLONE_REGION]}, {LADDER[DCLONE_LADDER]}, {HC[DCLONE_HC]}')
 
     async def on_ready(self):
@@ -189,7 +197,7 @@ class DiscordClient(discord.Client):
         """
         if message.content.startswith('.dclone') or message.content.startswith('!dclone'):
             print(f'Responding to dclone chatop from {message.author}')
-            current_status = self.dclone.current_progress_message()
+            current_status = self.dclone.progress_message()
 
             channel = self.get_channel(message.channel.id)
             await channel.send(current_status)
@@ -202,7 +210,7 @@ class DiscordClient(discord.Client):
         Status changes are compared to the last known status and a message is sent to Discord if the status changed.
         """
         # print('>> Checking DClone Status...')
-        status = self.dclone.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
         if not status:
             return
 
@@ -264,7 +272,7 @@ class DiscordClient(discord.Client):
         await self.wait_until_ready()  # wait until the bot logs in
 
         # get the current progress from the dclone API
-        status = self.dclone.get_dclone_status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
+        status = self.dclone.status(region=DCLONE_REGION, ladder=DCLONE_LADDER, hc=DCLONE_HC)
 
         if not status:
             print('Unable to set the current progress at startup')

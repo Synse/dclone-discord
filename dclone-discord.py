@@ -47,11 +47,10 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 __version__ = '0.6'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
-REGION_RW = {'Americas': ':flag_us: Americas', 'Europe': ':flag_eu: Europe', 'Asia': ':flag_kr: Asia', 'TBD': ':grey_question: TBD'}
 LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
-LADDER_RW = {True: ':ladder: Ladder', False: ':crossed_swords: Non-Ladder'}
+LADDER_RW = {True: 'Ladder', False: 'Non-Ladder'}
 HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
-HC_RW = {True: ':skull_crossbones: Hardcore', False: ':mage: Softcore'}
+HC_RW = {True: 'Hardcore', False: 'Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
 if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
@@ -63,7 +62,8 @@ class D2RuneWizardClient():
     """
     Interacts with the d2runewizard.com API to get planned walks.
     """
-    def emoji(self, region='', ladder='', hardcore=''):
+    @staticmethod
+    def emoji(region='', ladder='', hardcore=''):
         """
         Returns a string of Discord emoji for a given mode.
 
@@ -78,6 +78,8 @@ class D2RuneWizardClient():
             region = ':flag_eu:'
         elif region == 'Asia':
             region = ':flag_kr:'
+        elif region == 'TBD':
+            region = ':grey_question:'
 
         if ladder is True:
             ladder = ':ladder:'
@@ -131,7 +133,7 @@ class Diablo2IOClient():
             ('3', '2', '2'): [1],  # Asia, Non-Ladder, Softcore
         }
 
-        # Tracks planned walks from D2RuneWizard that have already alerted
+        # tracks planned walks from D2RuneWizard that have already alerted
         self.alerted_walks = []
 
     def emoji(self, region='', ladder='', hardcore=''):
@@ -211,7 +213,7 @@ class Diablo2IOClient():
             message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data courtesy of diablo2.io'
 
-        # Get planned walks from d2runewizard.com API
+        # get planned walks from d2runewizard.com API
         try:
             response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
             response.raise_for_status()
@@ -225,10 +227,12 @@ class Diablo2IOClient():
                     hardcore = walk.get('hardcore')
                     timestamp = int(walk.get('timestamp') / 1000)
                     name = walk.get('displayName')
+                    emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
+                    unconfirmed = ' **[UNCONFIRMED]]**' if not walk.get('confirmed') else ''
 
                     # TODO: filter to configured mode
-                    message += f' - **{REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`\n'
-                message += '> Data provided by d2runewizard.com'
+                    message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
+                message += '> Data courtesy of d2runewizard.com'
         except Exception as e:
             print(f'[ChatOp] D2RuneWizard API Error: {e}')
 
@@ -369,11 +373,13 @@ class DiscordClient(discord.Client):
                     ladder = walk.get('ladder')
                     hardcore = walk.get('hardcore')
                     name = walk.get('displayName')
+                    emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
+                    unconfirmed = ' [UNCONFIRMED]' if walk.get('unconfirmed') else ''
 
                     # post to discord
-                    print(f'[PlannedWalk] {REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m')
-                    message = f':alarm_clock: Upcoming walk for **{REGION_RW[region]} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
-                    message += f'reported by `{name}` starts at <t:{timestamp}:f>'
+                    print(f'[PlannedWalk] {region} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m {unconfirmed}')
+                    message = f':alarm_clock: Upcoming walk for {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
+                    message += f'reported by `{name}` starts at <t:{timestamp}:f>{unconfirmed}'
                     message += '\n> Data courtesy of d2runewizard.com'
 
                     channel = self.get_channel(DISCORD_CHANNEL_ID)

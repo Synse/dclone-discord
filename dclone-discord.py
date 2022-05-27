@@ -147,7 +147,7 @@ class Diablo2IOClient():
 
     def progress_message(self):
         """
-        Returns a formatted message of the current dclone status by mode (region, ladder, hc).
+        Returns a formatted message of the current dclone status by mode (region, ladder, hardcore).
         """
         # get the currently reported dclone status
         # TODO: return from current_progress instead of querying the API every time?
@@ -155,7 +155,7 @@ class Diablo2IOClient():
         if not status:
             return '[Diablo2IOClient.progress_message] API error, please try again later.'
 
-        # sort the status by mode (region, ladder, hc)
+        # sort the status by mode (region, ladder, hardcore)
         status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
 
         # build the message
@@ -184,7 +184,7 @@ class Diablo2IOClient():
         Since we're checking every 60 seconds any mode with the same progress report for 60*DCLONE_REPORTS seconds
         will also be reported as a change.
 
-        :param mode: game mode (region, ladder, hc)
+        :param mode: game mode (region, ladder, hardcore)
         :return: True/False if we should post an alert to Discord
         """
         reports = self.report_cache[mode][-DCLONE_REPORTS:]

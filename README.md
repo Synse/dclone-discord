@@ -2,9 +2,9 @@
 
 ![](https://img.shields.io/badge/version-0.7-blue)
 
-A Discord bot for reporting [DClone Tracker](https://diablo2.io/dclonetracker.php) progress changes and upcoming planned walks for Diablo 2: Resurrected. By default it will report any progress changes at or above level 2 for All Regions, Ladder and Non-Ladder, Softcore and planned walks an hour before they start.
+A Discord bot for reporting [DClone Tracker](https://diablo2.io/dclonetracker.php) progress changes and upcoming [planned walks](https://d2runewizard.com/diablo-clone-tracker#planned-walks) for Diablo 2: Resurrected. By default it will report any progress changes at or above level 2 for All Regions, Ladder and Non-Ladder, Softcore and planned walks an hour before they start.
 
-You can also get the current progress for tracked regions and upcoming walk information by typing `.dclone` or `!dclone` in chat.
+You can also get the current progress for tracked regions and planned walks by typing `.dclone` or `!dclone` in chat.
 
 ## Usage
 

@@ -134,6 +134,7 @@ class Diablo2IOClient():
         }
 
         # tracks planned walks from D2RuneWizard that have already alerted
+        # TODO: move to D2RuneWizardClient
         self.alerted_walks = []
 
     @staticmethod
@@ -215,6 +216,7 @@ class Diablo2IOClient():
         message += '> Data courtesy of diablo2.io'
 
         # get planned walks from d2runewizard.com API
+        # TODO: move to D2RuneWizardClient
         try:
             response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
             response.raise_for_status()

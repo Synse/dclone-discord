@@ -35,7 +35,7 @@ Configuration is done via environment variables, or you can edit the variables n
 
 ### Running
 
-Start the bot with `python3 dclone-discord.py`.
+Start the bot with `python3 dclone_discord.py`.
 
 ## Disclaimer
 

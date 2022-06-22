@@ -29,7 +29,7 @@ import discord
 
 # Discord (Required)
 DISCORD_TOKEN = environ.get('DISCORD_TOKEN')
-DISCORD_CHANNEL_ID = int(environ.get('DISCORD_CHANNEL_ID'))
+DISCORD_CHANNEL_ID = int(environ.get('DISCORD_CHANNEL_ID', 0))
 
 # DClone tracker API (Optional)
 # Defaults to All Regions, Ladder and Non-Ladder, Softcore
@@ -53,7 +53,7 @@ HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
 HC_RW = {True: 'Hardcore', False: 'Softcore'}
 
 # DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
-if not DISCORD_TOKEN or not DISCORD_CHANNEL_ID:
+if not DISCORD_TOKEN or DISCORD_CHANNEL_ID == 0:
     print('Please set DISCORD_TOKEN and DISCORD_CHANNEL_ID in your environment.')
     exit(1)
 

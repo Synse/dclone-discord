@@ -185,8 +185,8 @@ class Diablo2IOClient():
 
             response.raise_for_status()
             return response.json()
-        except Exception as e:
-            print(f'[Diablo2IOClient.status] API Error: {e}')
+        except Exception as err:
+            print(f'[Diablo2IOClient.status] API Error: {err}')
             return None
 
     def progress_message(self):
@@ -236,8 +236,8 @@ class Diablo2IOClient():
                     # TODO: filter to configured mode
                     message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
                 message += '> Data courtesy of d2runewizard.com'
-        except Exception as e:
-            print(f'[ChatOp] D2RuneWizard API Error: {e}')
+        except Exception as err:
+            print(f'[ChatOp] D2RuneWizard API Error: {err}')
 
         return message
 
@@ -285,8 +285,8 @@ class DiscordClient(discord.Client):
         print(f'Bot logged into Discord as {self.user}')
         try:
             self.check_dclone_status.start()
-        except RuntimeError as e:
-            print(f'Background Task Error: {e}')
+        except RuntimeError as err:
+            print(f'Background Task Error: {err}')
 
     async def on_message(self, message):
         """
@@ -390,8 +390,8 @@ class DiscordClient(discord.Client):
                     await channel.send(message)
 
                     self.dclone.alerted_walks.append(walk_id)
-        except Exception as e:
-            print(f'[PlannedWalk] D2RuneWizard API Error: {e}')
+        except Exception as err:
+            print(f'[PlannedWalk] D2RuneWizard API Error: {err}')
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):

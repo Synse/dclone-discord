@@ -281,6 +281,7 @@ class DiscordClient(discord.Client):
         """
         Runs when the bot is connected to Discord and ready to receive messages. This starts our background task.
         """
+        # pylint: disable=no-member
         print(f'Bot logged into Discord as {self.user}')
         try:
             self.check_dclone_status.start()

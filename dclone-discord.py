@@ -28,8 +28,8 @@ import discord
 # Setting environment variables is preferred, but you can also edit the variables below.
 
 # Discord (Required)
-DISCORD_TOKEN = environ.get('DISCORD_TOKEN')
-DISCORD_CHANNEL_ID = int(environ.get('DISCORD_CHANNEL_ID', 0))
+DCLONE_DISCORD_TOKEN = environ.get('DCLONE_DISCORD_TOKEN')
+DCLONE_DISCORD_CHANNEL_ID = int(environ.get('DCLONE_DISCORD_CHANNEL_ID', 0))
 
 # DClone tracker API (Optional)
 # Defaults to All Regions, Ladder and Non-Ladder, Softcore
@@ -52,9 +52,9 @@ LADDER_RW = {True: 'Ladder', False: 'Non-Ladder'}
 HC = {'1': 'Hardcore', '2': 'Softcore', '': 'Hardcore and Softcore'}
 HC_RW = {True: 'Hardcore', False: 'Softcore'}
 
-# DISCORD_TOKEN and DISCORD_CHANNEL_ID are required
-if not DISCORD_TOKEN or DISCORD_CHANNEL_ID == 0:
-    print('Please set DISCORD_TOKEN and DISCORD_CHANNEL_ID in your environment.')
+# DCLONE_DISCORD_TOKEN and DCLONE_DISCORD_CHANNEL_ID are required
+if not DCLONE_DISCORD_TOKEN or DCLONE_DISCORD_CHANNEL_ID == 0:
+    print('Please set DCLONE_DISCORD_TOKEN and DCLONE_DISCORD_CHANNEL_ID in your environment.')
     exit(1)
 
 
@@ -269,7 +269,7 @@ class DiscordClient(discord.Client):
     """
     Connects to Discord and starts a background task that checks the diablo2.io dclone API every 60 seconds.
     When a progress change occurs that is greater than or equal to DCLONE_THRESHOLD and for more than DCLONE_REPORTS
-    consecutive updates, the bot will send a message to the configured DISCORD_CHANNEL_ID.
+    consecutive updates, the bot will send a message to the configured DCLONE_DISCORD_CHANNEL_ID.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -333,7 +333,7 @@ class DiscordClient(discord.Client):
                 message = f'[{progress}/6] {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
                 message += '\n> Data courtesy of diablo2.io'
 
-                channel = self.get_channel(DISCORD_CHANNEL_ID)
+                channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
                 await channel.send(message)
 
                 # update current status
@@ -349,7 +349,7 @@ class DiscordClient(discord.Client):
                     message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone may have spawned (reporter_id: {reporter_id})'
                     message += '\n> Data courtesy of diablo2.io'
 
-                    channel = self.get_channel(DISCORD_CHANNEL_ID)
+                    channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
                     await channel.send(message)
 
                 # update current status
@@ -385,7 +385,7 @@ class DiscordClient(discord.Client):
                     message += f'starts at <t:{timestamp}:f> (reported by `{name}`){unconfirmed}'
                     message += '\n> Data courtesy of d2runewizard.com'
 
-                    channel = self.get_channel(DISCORD_CHANNEL_ID)
+                    channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
                     await channel.send(message)
 
                     self.dclone.alerted_walks.append(walk_id)
@@ -428,4 +428,4 @@ class DiscordClient(discord.Client):
 
 
 client = DiscordClient(intents=discord.Intents.default())
-client.run(DISCORD_TOKEN)
+client.run(DCLONE_DISCORD_TOKEN)

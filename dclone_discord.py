@@ -286,6 +286,14 @@ class DiscordClient(discord.Client):
         servers = sorted([g.name for g in self.guilds])
         print(f'Connected to {len(servers)} servers: {", ".join(servers)}')
 
+        # channel details
+        channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+        if not channel:
+            print('ERROR: Unable to access channel, please check DCLONE_DISCORD_CHANNEL_ID')
+            await self.close()
+            return
+        print(f'Messages will be sent to #{channel.name} on the {channel.guild.name} server')
+
         # start the background task to monitor dclone status
         try:
             self.check_dclone_status.start()

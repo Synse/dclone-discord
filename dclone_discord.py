@@ -282,7 +282,11 @@ class DiscordClient(discord.Client):
         Runs when the bot is connected to Discord and ready to receive messages. This starts our background task.
         """
         # pylint: disable=no-member
-        print(f'Bot logged into Discord as {self.user}')
+        print(f'Bot logged into Discord as "{self.user}"')
+        servers = sorted([g.name for g in self.guilds])
+        print(f'Connected to {len(servers)} servers: {", ".join(servers)}')
+
+        # start the background task to monitor dclone status
         try:
             self.check_dclone_status.start()
         except RuntimeError as err:

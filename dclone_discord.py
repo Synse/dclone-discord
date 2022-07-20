@@ -93,6 +93,36 @@ class D2RuneWizardClient():
 
         return f'{region} {ladder} {hardcore}'
 
+    @staticmethod
+    def filter_walks(walks):
+        """
+        Returns a filtered list of walks based on the configured mode (region, ladder, hardcore). Region TBD walks are always included.
+
+        :param walks: list of walks
+        :return: list of walks filtered to the configured mode
+        """
+        # filter walks to configured region, includ any region TBD walks
+        if DCLONE_REGION == '1':
+            walks = [walk for walk in walks if walk.get('region') == 'Americas' or walk.get('region') == 'TBD']
+        elif DCLONE_REGION == '2':
+            walks = [walk for walk in walks if walk.get('region') == 'Europe' or walk.get('region') == 'TBD']
+        elif DCLONE_REGION == '3':
+            walks = [walk for walk in walks if walk.get('region') == 'Asia' or walk.get('region') == 'TBD']
+
+        # filter walks to ladder/non-ladder
+        if DCLONE_LADDER == '1':
+            walks = [walk for walk in walks if walk.get('ladder')]
+        elif DCLONE_LADDER == '2':
+            walks = [walk for walk in walks if not walk.get('ladder')]
+
+        # filter walks to hardcore/softcore
+        if DCLONE_HC == '1':
+            walks = [walk for walk in walks if walk.get('hardcore')]
+        elif DCLONE_HC == '2':
+            walks = [walk for walk in walks if not walk.get('hardcore')]
+
+        return walks
+
 
 class Diablo2IOClient():
     """
@@ -221,7 +251,8 @@ class Diablo2IOClient():
             response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
             response.raise_for_status()
 
-            planned_walks = response.json().get('walks')
+            # filter planned walks to configured mode and add relevant ones to the message
+            planned_walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
             if len(planned_walks) > 0:
                 message += '\n\nPlanned Walks:\n'
                 for walk in planned_walks:
@@ -372,18 +403,18 @@ class DiscordClient(discord.Client):
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
                       f'(currently {progress_was}/6) (reporter_id: {reporter_id})')
 
-        # Check for upcoming walks using the D2RuneWizard API
+        # check for upcoming walks using the D2RuneWizard API
         try:
             response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
             response.raise_for_status()
 
-            walks = response.json().get('walks')
+            walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
             for walk in walks:
                 walk_id = walk.get('id')
                 timestamp = int(walk.get('timestamp') / 1000)
                 walk_in_mins = int(int(timestamp - time()) / 60)
 
-                # For walks in the next hour, send an alert if we have not already sent one
+                # for walks in the next hour, send an alert if we have not already sent one
                 if walk_in_mins <= 60 and walk_id not in self.dclone.alerted_walks:
                     region = walk.get('region')
                     ladder = walk.get('ladder')

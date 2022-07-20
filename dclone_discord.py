@@ -199,8 +199,8 @@ class Diablo2IOClient():
         if not status:
             return '[Diablo2IOClient.progress_message] API error, please try again later.'
 
-        # sort the status by mode (region, ladder, hardcore)
-        status = sorted(status, key=lambda x: (x['region'], x['ladder'], x['hc']))
+        # sort the status by mode (hardcore, ladder, region)
+        status = sorted(status, key=lambda x: (x['hc'], x['ladder'], x['region']))
 
         # build the message
         message = 'Current DClone Progress:\n'

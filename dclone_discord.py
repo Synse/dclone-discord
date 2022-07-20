@@ -264,7 +264,6 @@ class Diablo2IOClient():
                     emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
                     unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
 
-                    # TODO: filter to configured mode
                     message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
                 message += '> Data courtesy of d2runewizard.com'
         except Exception as err:

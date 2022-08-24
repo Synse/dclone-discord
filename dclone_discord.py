@@ -469,6 +469,6 @@ class DiscordClient(discord.Client):
             for _ in range(0, DCLONE_REPORTS):
                 self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
 
-
-client = DiscordClient(intents=discord.Intents.default())
-client.run(DCLONE_DISCORD_TOKEN)
+if __name__ == '__main__':
+    client = DiscordClient(intents=discord.Intents.default())
+    client.run(DCLONE_DISCORD_TOKEN)

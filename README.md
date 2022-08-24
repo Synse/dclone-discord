@@ -8,7 +8,7 @@ You can also get the current progress for tracked regions and planned walks by t
 
 ## Usage
 
-Requires Python 3.6+, tested on Linux.
+Requires Python 3.6+, tested on Ubuntu 20.04.
 
 ### Installation
 
@@ -30,7 +30,7 @@ Configuration is done via environment variables, or you can edit the variables n
  - `DCLONE_REGION`: `1` for Americas, `2` for Europe, `3` for Asia, blank **(Default)** for All Regions.
  - `DCLONE_LADDER`: `1` for Ladder, `2` for Non-Ladder, blank **(Default)** for both.
  - `DCLONE_HC`: `1` for Harcore, `2` for Softcore **(Default)**, blank for both.
- - `DCLONE_THRESHOLD`: Progress level to report at (and above). Default is 2.
+ - `DCLONE_THRESHOLD`: Progress level to report at (and above). Default is 3.
  - `DCLONE_REPORTS`: Only report changes after this many reports agree on a change. Default is 3.
 
 ### Running

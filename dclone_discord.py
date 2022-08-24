@@ -39,8 +39,8 @@ DCLONE_LADDER = environ.get('DCLONE_LADDER', '')  # 1 for Ladder, 2 for Non-Ladd
 DCLONE_HC = environ.get('DCLONE_HC', '2')  # 1 for Hardcore, 2 for Softcore, blank for all
 
 # Bot specific (Optional)
-# Defaults to alerting at level 2 if the last 3 progress reports match
-DCLONE_THRESHOLD = int(environ.get('DCLONE_THRESHOLD', 2))  # progress level to alert at (and above)
+# Defaults to alerting at level 3 if the last 3 progress reports match
+DCLONE_THRESHOLD = int(environ.get('DCLONE_THRESHOLD', 3))  # progress level to alert at (and above)
 DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching reports required before alerting (reduces trolling)
 
 ########################

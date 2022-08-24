@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+from datetime import datetime
 from os import environ
 from time import time
 from requests import get
@@ -360,6 +361,7 @@ class DiscordClient(discord.Client):
             hardcore = data.get('hc')
             progress = int(data.get('progress'))
             reporter_id = data.get('reporter_id')
+            timestamped = int(data.get('timestamped'))
             emoji = Diablo2IOClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
             progress_was = self.dclone.current_progress.get((region, ladder, hardcore))
@@ -399,8 +401,9 @@ class DiscordClient(discord.Client):
                 self.dclone.current_progress[(region, ladder, hardcore)] = progress
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
+                report_timestamp = datetime.fromtimestamp(timestamped).strftime('%Y-%m-%d %H:%M:%S')
                 print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
-                      f'(currently {progress_was}/6) (reporter_id: {reporter_id})')
+                      f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}')
 
         # check for upcoming walks using the D2RuneWizard API
         try:
@@ -468,6 +471,7 @@ class DiscordClient(discord.Client):
             # populate the report cache with DCLONE_REPORTS number of reports at this progress
             for _ in range(0, DCLONE_REPORTS):
                 self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
+
 
 if __name__ == '__main__':
     client = DiscordClient(intents=discord.Intents.default())

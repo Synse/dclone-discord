@@ -313,6 +313,10 @@ class DiscordClient(discord.Client):
         self.dclone = Diablo2IOClient()
         print(f'Tracking DClone for {REGION[DCLONE_REGION]}, {LADDER[DCLONE_LADDER]}, {HC[DCLONE_HC]}')
 
+        # DCLONE_D2RW_TOKEN is required for planned walk notifications
+        if not DCLONE_D2RW_TOKEN:
+            print('WARNING: DCLONE_D2RW_TOKEN is not set, you will not receive planned walk notifications.')
+
     async def on_ready(self):
         """
         Runs when the bot is connected to Discord and ready to receive messages. This starts our background task.

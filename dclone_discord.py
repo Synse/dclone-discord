@@ -32,6 +32,10 @@ import discord
 DCLONE_DISCORD_TOKEN = environ.get('DCLONE_DISCORD_TOKEN')
 DCLONE_DISCORD_CHANNEL_ID = int(environ.get('DCLONE_DISCORD_CHANNEL_ID', 0))
 
+# D2RuneWizard API (Optional but recommended)
+# This token is necessary for planned walk notifications
+DCLONE_D2RW_TOKEN = environ.get('DCLONE_D2RW_TOKEN')
+
 # DClone tracker API (Optional)
 # Defaults to All Regions, Ladder and Non-Ladder, Softcore
 DCLONE_REGION = environ.get('DCLONE_REGION', '')  # 1 for Americas, 2 for Europe, 3 for Asia, blank for all
@@ -248,27 +252,28 @@ class Diablo2IOClient():
 
         # get planned walks from d2runewizard.com API
         # TODO: move to D2RuneWizardClient
-        try:
-            response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
-            response.raise_for_status()
+        if DCLONE_D2RW_TOKEN:
+            try:
+                response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+                response.raise_for_status()
 
-            # filter planned walks to configured mode and add relevant ones to the message
-            planned_walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
-            if len(planned_walks) > 0:
-                message += '\n\nPlanned Walks:\n'
-                for walk in planned_walks:
-                    region = walk.get('region')
-                    ladder = walk.get('ladder')
-                    hardcore = walk.get('hardcore')
-                    timestamp = int(walk.get('timestamp') / 1000)
-                    name = walk.get('displayName')
-                    emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
-                    unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
+                # filter planned walks to configured mode and add relevant ones to the message
+                planned_walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
+                if len(planned_walks) > 0:
+                    message += '\n\nPlanned Walks:\n'
+                    for walk in planned_walks:
+                        region = walk.get('region')
+                        ladder = walk.get('ladder')
+                        hardcore = walk.get('hardcore')
+                        timestamp = int(walk.get('timestamp') / 1000)
+                        name = walk.get('displayName')
+                        emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
+                        unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
 
-                    message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
-                message += '> Data courtesy of d2runewizard.com'
-        except Exception as err:
-            print(f'[ChatOp] D2RuneWizard API Error: {err}')
+                        message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
+                    message += '> Data courtesy of d2runewizard.com'
+            except Exception as err:
+                print(f'[ChatOp] D2RuneWizard API Error: {err}')
 
         return message
 
@@ -406,37 +411,38 @@ class DiscordClient(discord.Client):
                       f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}')
 
         # check for upcoming walks using the D2RuneWizard API
-        try:
-            response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
-            response.raise_for_status()
+        if DCLONE_D2RW_TOKEN:
+            try:
+                response = get('https://d2runewizard.com/api/diablo-clone-progress/planned-walks', timeout=10)
+                response.raise_for_status()
 
-            walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
-            for walk in walks:
-                walk_id = walk.get('id')
-                timestamp = int(walk.get('timestamp') / 1000)
-                walk_in_mins = int(int(timestamp - time()) / 60)
+                walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))
+                for walk in walks:
+                    walk_id = walk.get('id')
+                    timestamp = int(walk.get('timestamp') / 1000)
+                    walk_in_mins = int(int(timestamp - time()) / 60)
 
-                # for walks in the next hour, send an alert if we have not already sent one
-                if walk_in_mins <= 60 and walk_id not in self.dclone.alerted_walks:
-                    region = walk.get('region')
-                    ladder = walk.get('ladder')
-                    hardcore = walk.get('hardcore')
-                    name = walk.get('displayName')
-                    emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
-                    unconfirmed = ' [UNCONFIRMED]' if walk.get('unconfirmed') else ''
+                    # for walks in the next hour, send an alert if we have not already sent one
+                    if walk_in_mins <= 60 and walk_id not in self.dclone.alerted_walks:
+                        region = walk.get('region')
+                        ladder = walk.get('ladder')
+                        hardcore = walk.get('hardcore')
+                        name = walk.get('displayName')
+                        emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
+                        unconfirmed = ' [UNCONFIRMED]' if walk.get('unconfirmed') else ''
 
-                    # post to discord
-                    print(f'[PlannedWalk] {region} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m {unconfirmed}')
-                    message = f'{emoji} Upcoming walk for **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
-                    message += f'starts at <t:{timestamp}:f> (reported by `{name}`){unconfirmed}'
-                    message += '\n> Data courtesy of d2runewizard.com'
+                        # post to discord
+                        print(f'[PlannedWalk] {region} {LADDER_RW[ladder]} {HC_RW[hardcore]} reported by {name} in {walk_in_mins}m {unconfirmed}')
+                        message = f'{emoji} Upcoming walk for **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** '
+                        message += f'starts at <t:{timestamp}:f> (reported by `{name}`){unconfirmed}'
+                        message += '\n> Data courtesy of d2runewizard.com'
 
-                    channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
-                    await channel.send(message)
+                        channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+                        await channel.send(message)
 
-                    self.dclone.alerted_walks.append(walk_id)
-        except Exception as err:
-            print(f'[PlannedWalk] D2RuneWizard API Error: {err}')
+                        self.dclone.alerted_walks.append(walk_id)
+            except Exception as err:
+                print(f'[PlannedWalk] D2RuneWizard API Error: {err}')
 
     @check_dclone_status.before_loop
     async def before_check_dclone_status(self):

@@ -26,6 +26,9 @@ Configuration is done via environment variables, or you can edit the variables n
  - `DCLONE_DISCORD_TOKEN`: Token for connecting to Discord, create a bot account with the instructions [here](https://discordpy.readthedocs.io/en/stable/discord.html). Only the `Send Messages` permission is required.
  - `DCLONE_DISCORD_CHANNEL_ID`: The [channel id](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-) to send messages to.
 
+**Optional (but recommended)**
+- `DCLONE_D2RW_TOKEN`: Token for querying d2runewizard.com, it is required if you want planned walk information. Get one [here](https://d2runewizard.com/integration).
+
 **Optional**
  - `DCLONE_REGION`: `1` for Americas, `2` for Europe, `3` for Asia, blank **(Default)** for All Regions.
  - `DCLONE_LADDER`: `1` for Ladder, `2` for Non-Ladder, blank **(Default)** for both.

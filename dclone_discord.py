@@ -33,8 +33,9 @@ DCLONE_DISCORD_TOKEN = environ.get('DCLONE_DISCORD_TOKEN')
 DCLONE_DISCORD_CHANNEL_ID = int(environ.get('DCLONE_DISCORD_CHANNEL_ID', 0))
 
 # D2RuneWizard API (Optional but recommended)
-# This token is necessary for planned walk notifications
+# Token and contact (email address) are necessary for planned walk notifications
 DCLONE_D2RW_TOKEN = environ.get('DCLONE_D2RW_TOKEN')
+DCLONE_D2RW_CONTACT = environ.get('DCLONE_D2RW_CONTACT')
 
 # DClone tracker API (Optional)
 # Defaults to All Regions, Ladder and Non-Ladder, Softcore
@@ -252,9 +253,12 @@ class Diablo2IOClient():
 
         # get planned walks from d2runewizard.com API
         # TODO: move to D2RuneWizardClient
-        if DCLONE_D2RW_TOKEN:
+        if DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT:
             try:
-                response = get(f'https://d2runewizard.com/api/diablo-clone-progress/planned-walks?token={DCLONE_D2RW_TOKEN}', timeout=10)
+                url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
+                params = {'token': DCLONE_D2RW_TOKEN}
+                headers = {'D2R-Contact': DCLONE_D2RW_CONTACT, 'D2R-Platform': 'Discord', 'D2R-Repo': 'https://github.com/Synse/dclone-discord'}
+                response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 
                 # filter planned walks to configured mode and add relevant ones to the message
@@ -313,9 +317,9 @@ class DiscordClient(discord.Client):
         self.dclone = Diablo2IOClient()
         print(f'Tracking DClone for {REGION[DCLONE_REGION]}, {LADDER[DCLONE_LADDER]}, {HC[DCLONE_HC]}')
 
-        # DCLONE_D2RW_TOKEN is required for planned walk notifications
-        if not DCLONE_D2RW_TOKEN:
-            print('WARNING: DCLONE_D2RW_TOKEN is not set, you will not receive planned walk notifications.')
+        # DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT are required for planned walk notifications
+        if not DCLONE_D2RW_TOKEN or not DCLONE_D2RW_CONTACT:
+            print('WARNING: DCLONE_D2RW_TOKEN or DCLONE_D2RW_CONTACT are not set, you will not receive planned walk notifications.')
 
     async def on_ready(self):
         """
@@ -415,9 +419,12 @@ class DiscordClient(discord.Client):
                       f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}')
 
         # check for upcoming walks using the D2RuneWizard API
-        if DCLONE_D2RW_TOKEN:
+        if DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT:
             try:
-                response = get(f'https://d2runewizard.com/api/diablo-clone-progress/planned-walks?token={DCLONE_D2RW_TOKEN}', timeout=10)
+                url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
+                params = {'token': DCLONE_D2RW_TOKEN}
+                headers = {'D2R-Contact': DCLONE_D2RW_CONTACT, 'D2R-Platform': 'Discord', 'D2R-Repo': 'https://github.com/Synse/dclone-discord'}
+                response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 
                 walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))

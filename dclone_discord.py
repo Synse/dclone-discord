@@ -257,11 +257,7 @@ class Diablo2IOClient():
             try:
                 url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
                 params = {'token': DCLONE_D2RW_TOKEN}
-                headers = {
-                    'D2R-Contact': DCLONE_D2RW_CONTACT,
-                    'D2R-Platform': 'Discord',
-                    'D2R-Repo': 'https://github.com/Synse/dclone-discord'
-                }
+                headers = {'D2R-Contact': DCLONE_D2RW_CONTACT, 'D2R-Platform': 'Discord', 'D2R-Repo': 'https://github.com/Synse/dclone-discord'}
                 response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 
@@ -427,11 +423,7 @@ class DiscordClient(discord.Client):
             try:
                 url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
                 params = {'token': DCLONE_D2RW_TOKEN}
-                headers = {
-                    'D2R-Contact': DCLONE_D2RW_CONTACT,
-                    'D2R-Platform': 'Discord',
-                    'D2R-Repo': 'https://github.com/Synse/dclone-discord'
-                }
+                headers = {'D2R-Contact': DCLONE_D2RW_CONTACT, 'D2R-Platform': 'Discord', 'D2R-Repo': 'https://github.com/Synse/dclone-discord'}
                 response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 

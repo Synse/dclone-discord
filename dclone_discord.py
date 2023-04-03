@@ -65,7 +65,7 @@ if not DCLONE_DISCORD_TOKEN or DCLONE_DISCORD_CHANNEL_ID == 0:
     exit(1)
 
 
-class D2RuneWizardClient():
+class D2RuneWizardClient:
     """
     Interacts with the d2runewizard.com API to get planned walks.
     """
@@ -131,7 +131,7 @@ class D2RuneWizardClient():
         return walks
 
 
-class Diablo2IOClient():
+class Diablo2IOClient:
     """
     Interacts with the diablo2.io dclone API. Tracks the current progress and recent reports for each mode.
     """

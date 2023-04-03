@@ -19,9 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from datetime import datetime
 from os import environ
 from time import time
-from requests import get
-from discord.ext import tasks
+
 import discord
+from discord.ext import tasks
+from requests import get
 
 #####################
 # Bot Configuration #
@@ -51,7 +52,7 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.10'
+__version__ = '0.11'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
 LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
 LADDER_RW = {True: 'Ladder', False: 'Non-Ladder'}
@@ -64,7 +65,7 @@ if not DCLONE_DISCORD_TOKEN or DCLONE_DISCORD_CHANNEL_ID == 0:
     exit(1)
 
 
-class D2RuneWizardClient():
+class D2RuneWizardClient:
     """
     Interacts with the d2runewizard.com API to get planned walks.
     """
@@ -130,7 +131,7 @@ class D2RuneWizardClient():
         return walks
 
 
-class Diablo2IOClient():
+class Diablo2IOClient:
     """
     Interacts with the diablo2.io dclone API. Tracks the current progress and recent reports for each mode.
     """

@@ -254,7 +254,14 @@ class Diablo2IOClient():
         # TODO: move to D2RuneWizardClient
         if DCLONE_D2RW_TOKEN:
             try:
-                response = get(f'https://d2runewizard.com/api/diablo-clone-progress/planned-walks?token={DCLONE_D2RW_TOKEN}', timeout=10)
+                url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
+                params = {'token': DCLONE_D2RW_TOKEN}
+                headers = {
+                    'D2R-Contact': 'EMAIL',
+                    'D2R-Platform': 'Discord',
+                    'D2R-Repo': 'https://github.com/Synse/dclone-discord'
+                }
+                response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 
                 # filter planned walks to configured mode and add relevant ones to the message
@@ -417,7 +424,14 @@ class DiscordClient(discord.Client):
         # check for upcoming walks using the D2RuneWizard API
         if DCLONE_D2RW_TOKEN:
             try:
-                response = get(f'https://d2runewizard.com/api/diablo-clone-progress/planned-walks?token={DCLONE_D2RW_TOKEN}', timeout=10)
+                url = 'https://d2runewizard.com/api/diablo-clone-progress/planned-walks'
+                params = {'token': DCLONE_D2RW_TOKEN}
+                headers = {
+                    'D2R-Contact': 'EMAIL',
+                    'D2R-Platform': 'Discord',
+                    'D2R-Repo': 'https://github.com/Synse/dclone-discord'
+                }
+                response = get(url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
 
                 walks = D2RuneWizardClient.filter_walks(response.json().get('walks'))

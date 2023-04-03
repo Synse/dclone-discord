@@ -19,9 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from datetime import datetime
 from os import environ
 from time import time
-from requests import get
-from discord.ext import tasks
+
 import discord
+from discord.ext import tasks
+from requests import get
 
 #####################
 # Bot Configuration #

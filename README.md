@@ -28,6 +28,7 @@ Configuration is done via environment variables, or you can edit the variables n
 
 **Optional**
  - `DCLONE_D2RW_TOKEN` (**Highly Recommended**): Token for querying d2runewizard.com, required if you want planned walk information. Request one [here](https://d2runewizard.com/integration).
+ - `DCLONE_D2RW_CONTACT` (**Highly Recommended**): The email address for your d2runewizard.com account, required if you want planned walk information.
  - `DCLONE_REGION`: `1` for Americas, `2` for Europe, `3` for Asia, blank **(Default)** for All Regions.
  - `DCLONE_LADDER`: `1` for Ladder, `2` for Non-Ladder, blank **(Default)** for both.
  - `DCLONE_HC`: `1` for Harcore, `2` for Softcore **(Default)**, blank for both.

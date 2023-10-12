@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from datetime import datetime
 from os import environ
+from re import match
 from time import time
 
 import discord
@@ -63,6 +64,11 @@ HC_RW = {True: 'Hardcore', False: 'Softcore'}
 if not DCLONE_DISCORD_TOKEN or DCLONE_DISCORD_CHANNEL_ID == 0:
     print('Please set DCLONE_DISCORD_TOKEN and DCLONE_DISCORD_CHANNEL_ID in your environment.')
     exit(1)
+
+# DCLONE_D2RW_CONTACT must be an email address
+if not match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', DCLONE_D2RW_CONTACT):
+    print('Error: DCLONE_D2RW_CONTACT must be an email address.')
+    DCLONE_D2RW_CONTACT = None
 
 
 class D2RuneWizardClient:
@@ -323,7 +329,7 @@ class DiscordClient(discord.Client):
 
         # DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT are required for planned walk notifications
         if not DCLONE_D2RW_TOKEN or not DCLONE_D2RW_CONTACT:
-            print('WARNING: DCLONE_D2RW_TOKEN or DCLONE_D2RW_CONTACT are not set, you will not receive planned walk notifications.')
+            print('WARNING: DCLONE_D2RW_TOKEN or DCLONE_D2RW_CONTACT are not set (or are incorrect), you will not receive planned walk notifications.')
 
     async def on_ready(self):
         """

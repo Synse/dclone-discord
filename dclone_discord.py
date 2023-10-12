@@ -69,6 +69,7 @@ class D2RuneWizardClient:
     """
     Interacts with the d2runewizard.com API to get planned walks.
     """
+
     @staticmethod
     def emoji(region='', ladder='', hardcore=''):
         """
@@ -135,6 +136,7 @@ class Diablo2IOClient:
     """
     Interacts with the diablo2.io dclone API. Tracks the current progress and recent reports for each mode.
     """
+
     def __init__(self):
         # Current progress (last alerted) for each mode
         self.current_progress = {
@@ -312,6 +314,7 @@ class DiscordClient(discord.Client):
     When a progress change occurs that is greater than or equal to DCLONE_THRESHOLD and for more than DCLONE_REPORTS
     consecutive updates, the bot will send a message to the configured DCLONE_DISCORD_CHANNEL_ID.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -416,8 +419,10 @@ class DiscordClient(discord.Client):
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
                 report_timestamp = datetime.fromtimestamp(timestamped).strftime('%Y-%m-%d %H:%M:%S')
-                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
-                      f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}')
+                print(
+                    f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 '
+                    + f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}'
+                )
 
         # check for upcoming walks using the D2RuneWizard API
         if DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT:

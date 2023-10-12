@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from datetime import datetime
 from os import environ
+from re import match
 from time import time
 
 import discord
@@ -52,7 +53,7 @@ DCLONE_REPORTS = int(environ.get('DCLONE_REPORTS', 3))  # number of matching rep
 ########################
 # End of configuration #
 ########################
-__version__ = '0.11'
+__version__ = '0.12'
 REGION = {'1': 'Americas', '2': 'Europe', '3': 'Asia', '': 'All Regions'}
 LADDER = {'1': 'Ladder', '2': 'Non-Ladder', '': 'Ladder and Non-Ladder'}
 LADDER_RW = {True: 'Ladder', False: 'Non-Ladder'}
@@ -64,11 +65,17 @@ if not DCLONE_DISCORD_TOKEN or DCLONE_DISCORD_CHANNEL_ID == 0:
     print('Please set DCLONE_DISCORD_TOKEN and DCLONE_DISCORD_CHANNEL_ID in your environment.')
     exit(1)
 
+# DCLONE_D2RW_CONTACT must be an email address
+if not match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', DCLONE_D2RW_CONTACT):
+    print('Error: DCLONE_D2RW_CONTACT must be an email address.')
+    DCLONE_D2RW_CONTACT = None
+
 
 class D2RuneWizardClient:
     """
     Interacts with the d2runewizard.com API to get planned walks.
     """
+
     @staticmethod
     def emoji(region='', ladder='', hardcore=''):
         """
@@ -135,6 +142,7 @@ class Diablo2IOClient:
     """
     Interacts with the diablo2.io dclone API. Tracks the current progress and recent reports for each mode.
     """
+
     def __init__(self):
         # Current progress (last alerted) for each mode
         self.current_progress = {
@@ -249,7 +257,7 @@ class Diablo2IOClient:
             timestamped = int(data.get('timestamped'))
             emoji = Diablo2IOClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
-            message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
+            message += f'- {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data courtesy of diablo2.io'
 
         # get planned walks from d2runewizard.com API
@@ -275,7 +283,7 @@ class Diablo2IOClient:
                         emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
                         unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
 
-                        message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
+                        message += f'- {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
                     message += '> Data courtesy of d2runewizard.com'
             except Exception as err:
                 print(f'[ChatOp] D2RuneWizard API Error: {err}')
@@ -312,6 +320,7 @@ class DiscordClient(discord.Client):
     When a progress change occurs that is greater than or equal to DCLONE_THRESHOLD and for more than DCLONE_REPORTS
     consecutive updates, the bot will send a message to the configured DCLONE_DISCORD_CHANNEL_ID.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -320,7 +329,7 @@ class DiscordClient(discord.Client):
 
         # DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT are required for planned walk notifications
         if not DCLONE_D2RW_TOKEN or not DCLONE_D2RW_CONTACT:
-            print('WARNING: DCLONE_D2RW_TOKEN or DCLONE_D2RW_CONTACT are not set, you will not receive planned walk notifications.')
+            print('WARNING: DCLONE_D2RW_TOKEN or DCLONE_D2RW_CONTACT are not set (or are incorrect), you will not receive planned walk notifications.')
 
     async def on_ready(self):
         """
@@ -416,8 +425,10 @@ class DiscordClient(discord.Client):
             elif progress != progress_was:
                 # track suspicious progress changes, these are not sent to discord
                 report_timestamp = datetime.fromtimestamp(timestamped).strftime('%Y-%m-%d %H:%M:%S')
-                print(f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 ' +
-                      f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}')
+                print(
+                    f'[Suspicious] {REGION[region]} {LADDER[ladder]} {HC[hardcore]} reported as {progress}/6 '
+                    + f'(currently {progress_was}/6) (reporter_id: {reporter_id}) at {report_timestamp}'
+                )
 
         # check for upcoming walks using the D2RuneWizard API
         if DCLONE_D2RW_TOKEN and DCLONE_D2RW_CONTACT:

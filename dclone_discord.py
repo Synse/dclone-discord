@@ -249,7 +249,7 @@ class Diablo2IOClient:
             timestamped = int(data.get('timestamped'))
             emoji = Diablo2IOClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
 
-            message += f' - {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
+            message += f'- {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** is `{progress}/6` <t:{timestamped}:R>\n'
         message += '> Data courtesy of diablo2.io'
 
         # get planned walks from d2runewizard.com API
@@ -275,7 +275,7 @@ class Diablo2IOClient:
                         emoji = D2RuneWizardClient.emoji(region=region, ladder=ladder, hardcore=hardcore)
                         unconfirmed = ' **[UNCONFIRMED]**' if not walk.get('confirmed') else ''
 
-                        message += f' - {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
+                        message += f'- {emoji} **{region} {LADDER_RW[ladder]} {HC_RW[hardcore]}** <t:{timestamp}:R> reported by `{name}`{unconfirmed}\n'
                     message += '> Data courtesy of d2runewizard.com'
             except Exception as err:
                 print(f'[ChatOp] D2RuneWizard API Error: {err}')

@@ -310,7 +310,7 @@ class Diablo2IOClient:
         :param mode: game mode (region, ladder, hardcore)
         :return: True/False if we should post an alert to Discord
         """
-        reports = self.report_cache[mode][-DCLONE_REPORTS:]
+        reports = self.report_cache[mode][-int(DCLONE_REPORTS):]
         self.report_cache[mode] = reports  # truncate recent reports
 
         # if the last DCLONE_REPORTS reports agree on the progress level, we should update
@@ -347,7 +347,7 @@ class DiscordClient(discord.Client):
         print(f'Connected to {len(servers)} servers: {", ".join(servers)}')
 
         # channel details
-        channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+        channel = self.get_channel(int(DCLONE_DISCORD_CHANNEL_ID))
         if not channel:
             print('ERROR: Unable to access channel, please check DCLONE_DISCORD_CHANNEL_ID')
             await self.close()
@@ -400,14 +400,14 @@ class DiscordClient(discord.Client):
 
             # handle progress changes
             # TODO: bundle multiple changes into one message?
-            if int(progress) >= DCLONE_THRESHOLD and progress > progress_was and self.dclone.should_update((region, ladder, hardcore)):
+            if int(progress) >= int(DCLONE_THRESHOLD) and progress > progress_was and self.dclone.should_update((region, ladder, hardcore)):
                 print(f'{REGION[region]} {LADDER[ladder]} {HC[hardcore]} is now {progress}/6 (was {progress_was}/6) (reporter_id: {reporter_id})')
 
                 # post to discord
                 message = f'[{progress}/6] {emoji} **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone progressed (reporter_id: {reporter_id})'
                 message += '\n> Data courtesy of diablo2.io'
 
-                channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+                channel = self.get_channel(int(DCLONE_DISCORD_CHANNEL_ID))
                 await channel.send(message)
 
                 # update current status
@@ -423,7 +423,7 @@ class DiscordClient(discord.Client):
                     message += f'[{progress}/6] **{REGION[region]} {LADDER[ladder]} {HC[hardcore]}** DClone may have spawned (reporter_id: {reporter_id})'
                     message += '\n> Data courtesy of diablo2.io'
 
-                    channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+                    channel = self.get_channel(int(DCLONE_DISCORD_CHANNEL_ID))
                     await channel.send(message)
 
                 # update current status
@@ -466,7 +466,7 @@ class DiscordClient(discord.Client):
                         message += f'starts at <t:{timestamp}:f> (reported by `{name}`){unconfirmed}'
                         message += '\n> Data courtesy of d2runewizard.com'
 
-                        channel = self.get_channel(DCLONE_DISCORD_CHANNEL_ID)
+                        channel = self.get_channel(int(DCLONE_DISCORD_CHANNEL_ID))
                         await channel.send(message)
 
                         self.dclone.alerted_walks.append(walk_id)
@@ -504,7 +504,7 @@ class DiscordClient(discord.Client):
                 print(f'Progress for {REGION[region]} {LADDER[ladder]} {HC[hardcore]} starting at {progress}/6 (reporter_id: {reporter_id})')
 
             # populate the report cache with DCLONE_REPORTS number of reports at this progress
-            for _ in range(0, DCLONE_REPORTS):
+            for _ in range(0, int(DCLONE_REPORTS)):
                 self.dclone.report_cache[(region, ladder, hardcore)].append(progress)
 
 

@@ -29,6 +29,12 @@ from requests import get
 # Bot Configuration #
 #####################
 # Setting environment variables is preferred, but you can also edit the variables below.
+#
+# If you modify the variables below (NOT RECOMMENDED) you should remove the `environ.get(` and `)`
+# from the lines you've modified or Python will try to read from an environment variable that doesn't exist.
+# The result should look something like:
+# DCLONE_DISCORD_TOKEN = 'G6uniSr4WpMWZU4QbuYJaOWb.PbFi41.fXd3D7rTbzGWRhr_M4NRu90JJLH'
+# DCLONE_DISCORD_CHANNEL_ID = int('123456123456123456')
 
 # Discord (Required)
 DCLONE_DISCORD_TOKEN = environ.get('DCLONE_DISCORD_TOKEN')

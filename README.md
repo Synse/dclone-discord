@@ -20,7 +20,7 @@ pip3 install -r requirements.txt
 
 ### Configuration
 
-Configuration is done via environment variables, or you can edit the variables near the top of the script.
+Configuration is done via environment variables, or you can edit the variables near the top of the script (not recommended).
 
 **Required**
  - `DCLONE_DISCORD_TOKEN`: Token for connecting to Discord, create a bot account with the instructions [here](https://discordpy.readthedocs.io/en/stable/discord.html). Only the `Send Messages` permission is required.
